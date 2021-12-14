@@ -5,13 +5,71 @@ import userEvent from '@testing-library/user-event';
 
 import Show from './../Show';
 
-test('renders without errors', ()=>{});
+const testShow = {
+    //add in approprate test data structure here.
 
-test('renders Loading component when prop show is null', () => {});
+    image: {
+        medium: "https://static.tvmaze.com/uploads/images/medium_portrait/200/501942.jpg",
+        original: "https://static.tvmaze.com/uploads/images/original_untouched/200/501942.jpg"
+    },//I retrieved this image data from the chrome console from the res data
+    name: "Test Show",
+    summary: "Test Summary blah blah blah",
+    //note seasons is from fetchShow.js line 34 seasons: formatSeasons(data._embedded.episodes). Which is becuase the res data returns _embedded as episodes: Array
+    seasons: [
+        { id: 0, name: "Test Season 1", episodes: [] },
+        { id: 1, name: "Tet Season 2", episodes: [] },
+        { id: 2, name: "Test Season 3", episodes: [] },
+        {
+            id: 3, name: "Test Season 4", episodes: [{
+                id: 3,
+                image: null,
+                name: "",
+                number: 3,
+                runtime: 3,
+                season: 3,
+                summary: "Text to test if passed or not"
+            }]
+        }],//the res data has more to it but this is all our app is useing. I put it in the same order as the chrome console.log of the response data just as can see it there on in postman. 
+}
+
+test('renders without errors', ()=>{
+    render(<Show/>)
+});
+
+test('renders Loading component when prop show is null', () => {
+    render(<Show show={null} selectedSeason={null}/>);
+    let loading = screen.getByText(/Fetching data.../i);
+    expect(loading).toHaveTextContent('Fetching data...');
+});
 
 
-test('renders same number of options seasons are passed in', ()=>{});
+test('renders same number of options seasons are passed in', ()=>{
+    render(<Show show={testShow} selectedSeason={"none"} />);
+  const seasonOptions = screen.queryAllByTestId("season-option");
+  expect(seasonOptions).toHaveLength(4);
+});
 
-test('handleSelect is called when an season is selected', () => {});
+test('handleSelect is called when a season is selected', () => {
+   //Arrange - render -  becomes a mock function as the prop this time.
+   const mockHandleSelect = jest.fn(() => { return ("TEST") });
+   render(<Show show={testShow} selectedSeason="3" handleSelect={mockHandleSelect} />);
+   //Act - const/screen - could pick anything. Tried Season 3. 
+   const season3Option = screen.getByTestId("seasons");//had to add data-testid="seasons" to Show.js line 16
+   //Assert - expect
+   userEvent.click(season3Option, [2]);
+});
 
-test('component renders when no seasons are selected and when rerenders with a season passed in', () => {});
+test('component renders when no seasons are selected and then rerenders with a season passed in', () => {
+    const { rerender } = render(<Show show={testShow} selectedSeason="none" />);
+    //Act
+    let episodeDiv = document.getElementsByClassName("episode");
+    //Assert
+    expect(episodeDiv.length).toBe(0);
+
+    //Arrange
+    rerender(<Show show={testShow} selectedSeason={3} />)//remember above I selected season 3
+    //Act
+    episodeDiv = document.getElementsByClassName("episode");//already defined above useing let
+    //Assert
+    expect(episodeDiv.length).toBe(1);
+});
