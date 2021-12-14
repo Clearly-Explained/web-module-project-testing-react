@@ -51,12 +51,12 @@ test('renders same number of options seasons are passed in', ()=>{
 
 test('handleSelect is called when a season is selected', () => {
    //Arrange - render -  becomes a mock function as the prop this time.
-   const mockHandleSelect = jest.fn(() => { return ("TEST") });
-   render(<Show show={testShow} selectedSeason="3" handleSelect={mockHandleSelect} />);
+   const handleSelect = jest.fn(() => { return ("TEST") });
+   render(<Show show={testShow} selectedSeason="3" handleSelect={handleSelect} />);
    //Act - const/screen - could pick anything. Tried Season 3. 
-   const season3Option = screen.getByTestId("seasons");//had to add data-testid="seasons" to Show.js line 16
-   //Assert - expect
-   userEvent.click(season3Option, [2]);
+   const select = screen.getByLabelText(/select a season/i)
+   userEvent.selectOptions(select, ['1'])
+   expect(handleSelect).toBeCalled()
 });
 
 test('component renders when no seasons are selected and then rerenders with a season passed in', () => {
